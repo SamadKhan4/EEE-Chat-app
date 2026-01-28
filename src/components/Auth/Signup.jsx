@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import Input from '../UI/Input';
 import Button from '../UI/Button';
@@ -119,7 +120,7 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
     setErrors({});
     
     try {
-      const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/auth/register', {
+      const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
