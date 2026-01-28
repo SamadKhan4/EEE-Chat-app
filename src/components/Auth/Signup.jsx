@@ -119,17 +119,27 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
     setErrors({});
     
     try {
-      const result = await apiService.signup({
-        username: formData.name.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
-        mobileNumber: ''
+      const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.name.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+          mobileNumber: ''
+        })
       });
       
-      if (result && result.token) {
+      const data = await response.json();
+      
+      if (response.ok) {
         setSignupSuccess(true);
         // Store the token in localStorage if provided by backend
-        localStorage.setItem('chatAppToken', result.token);
+        if (data.token) {
+          localStorage.setItem('chatAppToken', data.token);
+        }
         // Call the success callback to redirect to chat
         if (onLoginSuccess) {
           setTimeout(() => {
@@ -142,13 +152,13 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
         }
       } else {
         setErrors({
-          submit: result.message || 'Signup failed. Please try again.'
+          submit: data.message || 'Signup failed. Please try again.'
         });
       }
     } catch (err) {
       console.error('Signup error:', err);
       setErrors({
-        submit: err.message || 'Network error. Please check your connection and try again.'
+        submit: 'Network error. Please check your connection and try again.'
       });
     } finally {
       setLoading(false);
