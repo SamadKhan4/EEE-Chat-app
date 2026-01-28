@@ -5,20 +5,28 @@ import Avatar from '../UI/Avatar';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import { dummyMessages } from '../../data/dummyMessages';
+import webSocketService from '../../services/websocket';
+import apiService from '../../services/api';
 
 const ChatWindow = ({ activeChat, currentUser }) => {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentSubscription, setCurrentSubscription] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     if (activeChat) {
+      // Clean up previous subscription
+      if (currentSubscription) {
+        webSocketService.unsubscribe(currentSubscription.destination);
+        setCurrentSubscription(null);
+      }
+      
       setIsLoading(true);
       
       // First try to load messages from backend API
       const fetchMessagesFromAPI = async () => {
         try {
-          const token = localStorage.getItem('chatAppToken');
           const chatId = activeChat.id; // Get chatId from activeChat
           
           // Console log for debugging
@@ -26,50 +34,111 @@ const ChatWindow = ({ activeChat, currentUser }) => {
           console.log('Active chat object:', activeChat);
           
           // Check if chatId is valid
-          if (!chatId) {
-            console.log('No valid chat ID, using dummy messages');
+          if (!chatId || typeof chatId === 'number') {
+            console.log('Using dummy messages for chat ID:', chatId);
             setMessages(dummyMessages[activeChat.id] || []);
             setIsLoading(false);
+            
+            // Connect to WebSocket for real-time updates
+            connectToWebSocket(localStorage.getItem('chatAppToken'), activeChat);
             return;
           }
           
           // In a real app, this would fetch messages from the backend
-          const response = await fetch(`https://chatapp-production-f3ef.up.railway.app/api/messages/${chatId}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          console.log('Response status:', response.status);
-          console.log('Response headers:', response.headers);
-          
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response body:', errorText);
-            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+          try {
+            const apiMessages = await apiService.getMessages(chatId);
+            
+            // For now, using API messages or fallback to dummy
+            setMessages(apiMessages || dummyMessages[activeChat.id] || []);
+            setIsLoading(false);
+            scrollToBottom();
+            
+            // Connect to WebSocket for real-time updates
+            connectToWebSocket(localStorage.getItem('chatAppToken'), activeChat);
+          } catch (error) {
+            console.warn('API Error (falling back to dummy messages):', error.message);
+            // Fall back to dummy messages instead of throwing error
+            setMessages(dummyMessages[activeChat.id] || []);
+            setIsLoading(false);
+            scrollToBottom();
+            
+            // Connect to WebSocket for real-time updates
+            connectToWebSocket(localStorage.getItem('chatAppToken'), activeChat);
+            return;
           }
-          
-          const apiMessages = await response.json();
-          
-          // For now, using API messages or fallback to dummy
-          setMessages(apiMessages || dummyMessages[activeChat.id] || []);
-          setIsLoading(false);
-          scrollToBottom();
         } catch (error) {
           console.error('Error fetching messages:', error);
           // Fallback to dummy messages
           setMessages(dummyMessages[activeChat.id] || []);
           setIsLoading(false);
           scrollToBottom();
+          
+          // Connect to WebSocket for real-time updates
+          const token = localStorage.getItem('chatAppToken');
+          connectToWebSocket(token, activeChat);
         }
       };
       
       fetchMessagesFromAPI();
     }
+    
+    // Cleanup function
+    return () => {
+      if (currentSubscription) {
+        webSocketService.unsubscribe(currentSubscription.destination);
+      }
+    };
   }, [activeChat]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // WebSocket connection function
+  const connectToWebSocket = (token, chat) => {
+    if (!token || !chat) return;
+    
+    // Connect to WebSocket if not already connected
+    if (!webSocketService.isConnected()) {
+      webSocketService.connect(
+        token,
+        (frame) => {
+          console.log('WebSocket connected successfully');
+          subscribeToChatMessages(chat);
+        },
+        (error) => {
+          console.error('WebSocket connection error:', error);
+        }
+      );
+    } else {
+      // Already connected, just subscribe to chat
+      subscribeToChatMessages(chat);
+    }
+  };
+
+  // Subscribe to chat messages
+  const subscribeToChatMessages = (chat) => {
+    if (!chat.id) return;
+    
+    const subscription = webSocketService.subscribeToChat(chat.id, (message) => {
+      console.log('Received new message via WebSocket:', message);
+      
+      // Add new message to state
+      const newMessage = {
+        id: message.id || Date.now(),
+        text: message.content,
+        sender: message.senderId !== currentUser?.id,
+        timestamp: new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        read: false
+      };
+      
+      setMessages(prev => [...prev, newMessage]);
+      scrollToBottom();
+    });
+    
+    if (subscription) {
+      setCurrentSubscription(subscription);
+    }
   };
 
   useEffect(() => {

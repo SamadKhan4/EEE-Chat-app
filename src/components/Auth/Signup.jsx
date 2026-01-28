@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Input from '../UI/Input';
 import Button from '../UI/Button';
 import Avatar from '../UI/Avatar';
+import apiService from '../../services/api';
 
 const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
   const [step, setStep] = useState(1);
@@ -118,27 +119,17 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
     setErrors({});
     
     try {
-      const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.name.trim(),
-          email: formData.email.trim(),
-          password: formData.password,
-          mobileNumber: ''
-        })
+      const result = await apiService.signup({
+        username: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        mobileNumber: ''
       });
       
-      const data = await response.json();
-      
-      if (response.ok) {
+      if (result && result.token) {
         setSignupSuccess(true);
         // Store the token in localStorage if provided by backend
-        if (data.token) {
-          localStorage.setItem('chatAppToken', data.token);
-        }
+        localStorage.setItem('chatAppToken', result.token);
         // Call the success callback to redirect to chat
         if (onLoginSuccess) {
           setTimeout(() => {
@@ -151,13 +142,13 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
         }
       } else {
         setErrors({
-          submit: data.message || 'Signup failed. Please try again.'
+          submit: result.message || 'Signup failed. Please try again.'
         });
       }
     } catch (err) {
       console.error('Signup error:', err);
       setErrors({
-        submit: 'Network error. Please check your connection and try again.'
+        submit: err.message || 'Network error. Please check your connection and try again.'
       });
     } finally {
       setLoading(false);

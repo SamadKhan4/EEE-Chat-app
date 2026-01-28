@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Avatar from '../UI/Avatar';
 import ChatList from './ChatList';
+import apiService from '../../services/api';
 
 const Sidebar = ({ 
   activeChat, 
@@ -16,9 +17,8 @@ const Sidebar = ({
     // Fetch users from the backend API
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem('chatAppToken');
-        
         // If no token exists, we can't fetch users
+        const token = localStorage.getItem('chatAppToken');
         if (!token) {
           console.log('No token found, cannot fetch users. User needs to log in first.');
           // Fallback to dummy chats
@@ -28,17 +28,7 @@ const Sidebar = ({
           return; // Exit early
         }
         
-        const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/users', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const chats = await response.json();
+        const chats = await apiService.getChats();
         
         // Process the chats data to match our chat format
         const processedChats = chats.map((chat, index) => ({

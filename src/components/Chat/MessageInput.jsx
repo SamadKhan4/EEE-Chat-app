@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import webSocketService from '../../services/websocket';
+import apiService from '../../services/api';
 
 const MessageInput = ({ onSendMessage, disabled = false, activeReceiverId }) => {
   const [message, setMessage] = useState('');
@@ -10,40 +12,43 @@ const MessageInput = ({ onSendMessage, disabled = false, activeReceiverId }) => 
     if (message.trim() && !disabled) {
       setSending(true);
       try {
-        // Send message to backend API
-        const token = localStorage.getItem('chatAppToken');
+        // Try WebSocket first, fallback to REST API
         
-        const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/messages/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            receiverId: activeReceiverId, // Actual receiver ID from props
-            content: message.trim()
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-          // Successfully sent, update local state
-          console.log('Message sent successfully:', result);
-          onSendMessage(message.trim());
-          setMessage('');
-          setIsTyping(false);
+        // Check if WebSocket is connected
+        if (webSocketService.isConnected()) {
+          // Send via WebSocket
+          const success = webSocketService.sendChatMessage(activeReceiverId, message.trim());
+          
+          if (success) {
+            console.log('Message sent via WebSocket');
+            onSendMessage(message.trim());
+            setMessage('');
+            setIsTyping(false);
+          } else {
+            // Fallback to API service
+            await apiService.sendMessage({
+              receiverId: activeReceiverId,
+              content: message.trim()
+            });
+            console.log('Message sent via API service');
+            onSendMessage(message.trim());
+            setMessage('');
+            setIsTyping(false);
+          }
         } else {
-          console.error('Failed to send message:', result);
-          // Still add to local state for UI feedback, but show error
-          onSendMessage(message.trim(), true); // Pass error flag
+          // Fallback to API service
+          await apiService.sendMessage({
+            receiverId: activeReceiverId,
+            content: message.trim()
+          });
+          console.log('Message sent via API service');
+          onSendMessage(message.trim());
           setMessage('');
           setIsTyping(false);
         }
       } catch (error) {
         console.error('Error sending message:', error);
-        // Still add to local state for UI feedback, but show error
-        onSendMessage(message.trim(), true); // Pass error flag
+        onSendMessage(message.trim(), true);
         setMessage('');
         setIsTyping(false);
       } finally {

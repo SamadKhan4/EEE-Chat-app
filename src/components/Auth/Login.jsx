@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Input from '../UI/Input';
 import Button from '../UI/Button';
+import apiService from '../../services/api';
 
 const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
   const [formData, setFormData] = useState({
@@ -56,26 +57,16 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
     setLoginSuccess(false);
     
     try {
-      const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          emailOrMobile: formData.email,
-          password: formData.password
-        })
+      const result = await apiService.login({
+        emailOrMobile: formData.email,
+        password: formData.password
       });
       
-      const data = await response.json();
-      
-      if (response.ok) {
+      if (result && result.token) {
         setLoginSuccess(true);
         // Store the token in localStorage if provided by backend
-        if (data.token) {
-          localStorage.setItem('chatAppToken', data.token);
-        }
-        console.log('Login successful:', data);
+        localStorage.setItem('chatAppToken', result.token);
+        console.log('Login successful:', result);
         // Call the success callback to redirect to chat
         if (onLoginSuccess) {
           setTimeout(() => {
@@ -84,13 +75,13 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
         }
       } else {
         setErrors({
-          email: data.message || 'Login failed. Please try again.'
+          email: result.message || 'Login failed. Please try again.'
         });
       }
     } catch (err) {
       console.error('Login error:', err);
       setErrors({
-        email: 'Network error. Please check your connection.'
+        email: err.message || 'Network error. Please check your connection.'
       });
     } finally {
       setLoading(false);
