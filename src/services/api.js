@@ -73,7 +73,7 @@ class ApiService {
   }
 
   async signup(userData) {
-    return this.request('/auth/register', {
+    return this.request('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
