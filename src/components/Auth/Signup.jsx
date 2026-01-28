@@ -12,6 +12,7 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
     email: '',
     password: '',
     confirmPassword: '',
+    mobileNumber: '',
     avatar: null
   });
   const [loading, setLoading] = useState(false);
@@ -74,6 +75,12 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
       newErrors.email = 'Please enter a valid email address';
     }
     
+    if (!formData.mobileNumber) {
+      newErrors.mobileNumber = 'Mobile number is required';
+    } else if (!/^\+?[1-9]\d{1,14}$/.test(formData.mobileNumber.replace(/\D/g, ''))) {
+      newErrors.mobileNumber = 'Please enter a valid mobile number';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -120,27 +127,17 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
     setErrors({});
     
     try {
-      const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.name.trim(),
-          email: formData.email.trim(),
-          password: formData.password,
-          mobileNumber: ''
-        })
+      const result = await apiService.signup({
+        username: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        mobileNumber: formData.mobileNumber.trim()
       });
       
-      const data = await response.json();
-      
-      if (response.ok) {
+      if (result && result.token) {
         setSignupSuccess(true);
         // Store the token in localStorage if provided by backend
-        if (data.token) {
-          localStorage.setItem('chatAppToken', data.token);
-        }
+        localStorage.setItem('chatAppToken', result.token);
         // Call the success callback to redirect to chat
         if (onLoginSuccess) {
           setTimeout(() => {
@@ -153,7 +150,7 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
         }
       } else {
         setErrors({
-          submit: data.message || 'Signup failed. Please try again.'
+          submit: result.message || 'Signup failed. Please try again.'
         });
       }
     } catch (err) {
@@ -291,6 +288,17 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
                 value={formData.email}
                 onChange={handleChange}
                 error={errors.email}
+                required
+              />
+
+              <Input
+                label="Mobile Number"
+                type="tel"
+                name="mobileNumber"
+                placeholder="Enter your mobile number"
+                value={formData.mobileNumber}
+                onChange={handleChange}
+                error={errors.mobileNumber}
                 required
               />
 
