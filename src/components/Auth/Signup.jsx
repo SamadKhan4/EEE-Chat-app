@@ -126,41 +126,23 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
     setSignupSuccess(false);
     setErrors({});
     
-    try {
-      const result = await apiService.signup({
-        username: formData.name.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
-        mobileNumber: formData.mobileNumber.trim()
-      });
-      
-      if (result && result.token) {
-        setSignupSuccess(true);
-        // Store the token in localStorage if provided by backend
-        localStorage.setItem('chatAppToken', result.token);
-        // Call the success callback to redirect to chat
-        if (onLoginSuccess) {
-          setTimeout(() => {
-            onLoginSuccess();
-          }, 2500);
-        } else {
-          setTimeout(() => {
-            onSwitchToLogin();
-          }, 2500);
-        }
+    // Simulate signup process (static mode)
+    setTimeout(() => {
+      setSignupSuccess(true);
+      // Simulate token storage
+      localStorage.setItem('chatAppToken', 'dummy_token');
+      console.log('Signup successful (static mode)');
+      // Call the success callback to redirect to chat
+      if (onLoginSuccess) {
+        setTimeout(() => {
+          onLoginSuccess();
+        }, 2500);
       } else {
-        setErrors({
-          submit: result.message || 'Signup failed. Please try again.'
-        });
+        setTimeout(() => {
+          onSwitchToLogin();
+        }, 2500);
       }
-    } catch (err) {
-      console.error('Signup error:', err);
-      setErrors({
-        submit: 'Network error. Please check your connection and try again.'
-      });
-    } finally {
-      setLoading(false);
-    }
+    }, 1000);
   };
 
   const getPasswordStrength = (password) => {

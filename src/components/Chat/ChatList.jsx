@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Avatar from '../UI/Avatar';
-import apiService from '../../services/api';
 
 const ChatList = ({ chats, activeChat, onSelectChat }) => {
   const [apiChats, setApiChats] = useState([]);
@@ -20,22 +19,8 @@ const ChatList = ({ chats, activeChat, onSelectChat }) => {
           return; // Exit early
         }
         
-        const users = await apiService.getUsers();
-        
-        // Process the users data to match our chat format
-        const processedChats = users.map((user, index) => ({
-          id: user.id || user._id || index + 1,
-          name: user.username || user.name || 'Unknown User',
-          avatar: `https://i.pravatar.cc/150?img=${index + 1}`,
-          lastMessage: 'No recent messages',
-          timestamp: new Date(user.createdAt).toLocaleDateString() || 'Just now',
-          unread: 0,
-          online: false,
-          status: 'Offline',
-          isGroup: false
-        }));
-        
-        setApiChats(processedChats);
+        // Use static dummy chats (static mode)
+        setApiChats(chats);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching users:', error);

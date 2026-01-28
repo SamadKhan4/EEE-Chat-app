@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import webSocketService from '../../services/websocket';
-import apiService from '../../services/api';
 
-const MessageInput = ({ onSendMessage, disabled = false, activeReceiverId }) => {
+const MessageInput = ({ onSendMessage, disabled = false }) => {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [sending, setSending] = useState(false);
@@ -14,38 +12,11 @@ const MessageInput = ({ onSendMessage, disabled = false, activeReceiverId }) => 
       try {
         // Try WebSocket first, fallback to REST API
         
-        // Check if WebSocket is connected
-        if (webSocketService.isConnected()) {
-          // Send via WebSocket
-          const success = webSocketService.sendChatMessage(activeReceiverId, message.trim());
-          
-          if (success) {
-            console.log('Message sent via WebSocket');
-            onSendMessage(message.trim());
-            setMessage('');
-            setIsTyping(false);
-          } else {
-            // Fallback to API service
-            await apiService.sendMessage({
-              receiverId: activeReceiverId,
-              content: message.trim()
-            });
-            console.log('Message sent via API service');
-            onSendMessage(message.trim());
-            setMessage('');
-            setIsTyping(false);
-          }
-        } else {
-          // Fallback to API service
-          await apiService.sendMessage({
-            receiverId: activeReceiverId,
-            content: message.trim()
-          });
-          console.log('Message sent via API service');
+          // Simulate message sent via WebSocket (static mode)
+          console.log('Message sent via WebSocket (static mode)');
           onSendMessage(message.trim());
           setMessage('');
           setIsTyping(false);
-        }
       } catch (error) {
         console.error('Error sending message:', error);
         onSendMessage(message.trim(), true);

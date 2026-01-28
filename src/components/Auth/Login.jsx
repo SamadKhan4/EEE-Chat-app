@@ -56,36 +56,19 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
     setLoading(true);
     setLoginSuccess(false);
     
-    try {
-      const result = await apiService.login({
-        emailOrMobile: formData.email,
-        password: formData.password
-      });
-      
-      if (result && result.token) {
-        setLoginSuccess(true);
-        // Store the token in localStorage if provided by backend
-        localStorage.setItem('chatAppToken', result.token);
-        console.log('Login successful:', result);
-        // Call the success callback to redirect to chat
-        if (onLoginSuccess) {
-          setTimeout(() => {
-            onLoginSuccess();
-          }, 1500);
-        }
-      } else {
-        setErrors({
-          email: result.message || 'Login failed. Please try again.'
-        });
+    // Simulate login process (static mode)
+    setTimeout(() => {
+      setLoginSuccess(true);
+      // Simulate token storage
+      localStorage.setItem('chatAppToken', 'dummy_token');
+      console.log('Login successful (static mode)');
+      // Call the success callback to redirect to chat
+      if (onLoginSuccess) {
+        setTimeout(() => {
+          onLoginSuccess();
+        }, 1500);
       }
-    } catch (err) {
-      console.error('Login error:', err);
-      setErrors({
-        email: err.message || 'Network error. Please check your connection.'
-      });
-    } finally {
-      setLoading(false);
-    }
+    }, 1000);
   };
 
   return (

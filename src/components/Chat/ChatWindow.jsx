@@ -44,28 +44,10 @@ const ChatWindow = ({ activeChat, currentUser }) => {
             return;
           }
           
-          // In a real app, this would fetch messages from the backend
-          try {
-            const apiMessages = await apiService.getMessages(chatId);
-            
-            // For now, using API messages or fallback to dummy
-            setMessages(apiMessages || dummyMessages[activeChat.id] || []);
-            setIsLoading(false);
-            scrollToBottom();
-            
-            // Connect to WebSocket for real-time updates
-            connectToWebSocket(localStorage.getItem('chatAppToken'), activeChat);
-          } catch (error) {
-            console.warn('API Error (falling back to dummy messages):', error.message);
-            // Fall back to dummy messages instead of throwing error
-            setMessages(dummyMessages[activeChat.id] || []);
-            setIsLoading(false);
-            scrollToBottom();
-            
-            // Connect to WebSocket for real-time updates
-            connectToWebSocket(localStorage.getItem('chatAppToken'), activeChat);
-            return;
-          }
+          // Use static dummy messages (static mode)
+          setMessages(dummyMessages[activeChat.id] || []);
+          setIsLoading(false);
+          scrollToBottom();
         } catch (error) {
           console.error('Error fetching messages:', error);
           // Fallback to dummy messages

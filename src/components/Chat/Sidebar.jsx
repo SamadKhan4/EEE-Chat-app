@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Avatar from '../UI/Avatar';
 import ChatList from './ChatList';
-import apiService from '../../services/api';
 
 const Sidebar = ({ 
   activeChat, 
@@ -17,35 +16,11 @@ const Sidebar = ({
     // Fetch users from the backend API
     const fetchUsers = async () => {
       try {
-        // If no token exists, we can't fetch users
-        const token = localStorage.getItem('chatAppToken');
-        if (!token) {
-          console.log('No token found, cannot fetch users. User needs to log in first.');
-          // Fallback to dummy chats
-          import('../../data/dummyChats').then(module => {
-            setApiChats(module.dummyChats);
-          });
-          return; // Exit early
-        }
-        
-        const chats = await apiService.getChats();
-        
-        // Process the chats data to match our chat format
-        const processedChats = chats.map((chat, index) => ({
-          id: chat.id || index + 1,
-          name: chat.participants && chat.participants.length > 0 ? 
-                chat.participants[0].username || 'Unknown User' : 'Unknown User',
-          avatar: `https://i.pravatar.cc/150?img=${index + 1}`,
-          lastMessage: chat.lastMessage ? chat.lastMessage.content : 'No recent messages',
-          timestamp: chat.lastMessage ? 
-                     new Date(chat.lastMessage.timestamp).toLocaleDateString() : 'Just now',
-          unread: 0,
-          online: false,
-          status: 'Offline',
-          isGroup: false
-        }));
-        
-        setApiChats(processedChats);
+        // Use static dummy chats (static mode)
+        import('../../data/dummyChats').then(module => {
+          setApiChats(module.dummyChats);
+        });
+        return; // Exit early
       } catch (error) {
         console.error('Error fetching users:', error);
         // Fallback to dummy data
