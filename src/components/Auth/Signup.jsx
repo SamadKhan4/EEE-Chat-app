@@ -118,7 +118,7 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
     setErrors({});
     
     try {
-      const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/auth/register', {
+      const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
