@@ -19,16 +19,34 @@ const ChatWindow = ({ activeChat, currentUser }) => {
       const fetchMessagesFromAPI = async () => {
         try {
           const token = localStorage.getItem('chatAppToken');
+          const chatId = activeChat.id; // Get chatId from activeChat
+          
+          // Console log for debugging
+          console.log('Chat ID being used for API call:', chatId);
+          console.log('Active chat object:', activeChat);
+          
+          // Check if chatId is valid
+          if (!chatId) {
+            console.log('No valid chat ID, using dummy messages');
+            setMessages(dummyMessages[activeChat.id] || []);
+            setIsLoading(false);
+            return;
+          }
           
           // In a real app, this would fetch messages from the backend
-          const response = await fetch(`https://chatapp-production-f3ef.up.railway.app/api/messages/${activeChat.id}`, {
+          const response = await fetch(`https://chatapp-production-f3ef.up.railway.app/api/messages/${chatId}`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
           });
           
+          console.log('Response status:', response.status);
+          console.log('Response headers:', response.headers);
+          
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Error response body:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
           }
           
           const apiMessages = await response.json();

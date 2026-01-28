@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Button from '../components/UI/Button';
 
-const SettingsPage = ({ onClose }) => {
+const SettingsPage = ({ onClose, onLogout }) => {
   const [theme, setTheme] = useState('light');
   const [notifications, setNotifications] = useState({
     messages: true,
@@ -161,7 +161,7 @@ const SettingsPage = ({ onClose }) => {
           <Button variant="outline" fullWidth>
             Privacy Settings
           </Button>
-          <Button variant="danger" fullWidth>
+          <Button variant="danger" fullWidth onClick={onLogout}>
             Logout
           </Button>
         </div>

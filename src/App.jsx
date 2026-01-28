@@ -21,9 +21,17 @@ function App() {
     // localStorage.setItem('chatAppToken', token);
   };
 
+  // Function to handle logout
+  const handleLogout = () => {
+    // Remove token from localStorage
+    localStorage.removeItem('chatAppToken');
+    // Set logged in state to false
+    setIsLoggedIn(false);
+  };
+
   return (
     <div className="font-sans antialiased">
-      {isLoggedIn ? <ChatPage /> : <AuthPage onLoginSuccess={handleLoginSuccess} />}
+      {isLoggedIn ? <ChatPage onLogout={handleLogout} /> : <AuthPage onLoginSuccess={handleLoginSuccess} />}
     </div>
   );
 }

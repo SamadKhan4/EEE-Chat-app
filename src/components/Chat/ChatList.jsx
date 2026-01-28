@@ -34,15 +34,15 @@ const ChatList = ({ chats, activeChat, onSelectChat }) => {
         
         // Process the users data to match our chat format
         const processedChats = users.map((user, index) => ({
-          id: user._id || index + 1,
-          name: user.name || user.username || 'Unknown User',
-          avatar: user.profilePicture || `https://i.pravatar.cc/150?img=${index + 1}`,
-          lastMessage: user.lastMessage || 'No recent messages',
-          timestamp: user.lastSeen || 'Just now',
-          unread: user.unreadCount || 0,
-          online: user.isOnline || false,
-          status: user.status || 'Offline',
-          isGroup: user.isGroup || false
+          id: user.id || user._id || index + 1,
+          name: user.username || user.name || 'Unknown User',
+          avatar: `https://i.pravatar.cc/150?img=${index + 1}`,
+          lastMessage: 'No recent messages',
+          timestamp: new Date(user.createdAt).toLocaleDateString() || 'Just now',
+          unread: 0,
+          online: false,
+          status: 'Offline',
+          isGroup: false
         }));
         
         setApiChats(processedChats);

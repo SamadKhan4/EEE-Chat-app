@@ -38,19 +38,21 @@ const Sidebar = ({
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const users = await response.json();
+        const chats = await response.json();
         
-        // Process the users data to match our chat format
-        const processedChats = users.map((user, index) => ({
-          id: user._id || index + 1,
-          name: user.name || user.username || 'Unknown User',
-          avatar: user.profilePicture || `https://i.pravatar.cc/150?img=${index + 1}`,
-          lastMessage: user.lastMessage || 'No recent messages',
-          timestamp: user.lastSeen || 'Just now',
-          unread: user.unreadCount || 0,
-          online: user.isOnline || false,
-          status: user.status || 'Offline',
-          isGroup: user.isGroup || false
+        // Process the chats data to match our chat format
+        const processedChats = chats.map((chat, index) => ({
+          id: chat.id || index + 1,
+          name: chat.participants && chat.participants.length > 0 ? 
+                chat.participants[0].username || 'Unknown User' : 'Unknown User',
+          avatar: `https://i.pravatar.cc/150?img=${index + 1}`,
+          lastMessage: chat.lastMessage ? chat.lastMessage.content : 'No recent messages',
+          timestamp: chat.lastMessage ? 
+                     new Date(chat.lastMessage.timestamp).toLocaleDateString() : 'Just now',
+          unread: 0,
+          online: false,
+          status: 'Offline',
+          isGroup: false
         }));
         
         setApiChats(processedChats);

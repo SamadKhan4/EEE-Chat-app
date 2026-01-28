@@ -6,7 +6,7 @@ import ProfileCard from '../components/Profile/ProfileCard';
 import SettingsPage from './SettingsPage';
 import { dummyChats } from '../data/dummyChats';
 
-const ChatPage = () => {
+const ChatPage = ({ onLogout }) => {
   const [activeChat, setActiveChat] = useState(dummyChats[0]);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -54,7 +54,7 @@ const ChatPage = () => {
         title="Settings"
         size="md"
       >
-        <SettingsPage onClose={() => setShowSettings(false)} />
+        <SettingsPage onClose={() => setShowSettings(false)} onLogout={onLogout} />
       </Modal>
     </div>
   );

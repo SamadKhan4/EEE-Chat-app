@@ -118,17 +118,16 @@ const Signup = ({ onSwitchToLogin, onLoginSuccess }) => {
     setErrors({});
     
     try {
-      const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/auth/signup', {
+      const response = await fetch('https://chatapp-production-f3ef.up.railway.app/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.name.trim(),
+          username: formData.name.trim(),
           email: formData.email.trim(),
-          mobile: '',
           password: formData.password,
-          profilePicture: formData.avatar || ''
+          mobileNumber: ''
         })
       });
       
